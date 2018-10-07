@@ -129,7 +129,9 @@ private:
 	void _set_process(bool p_process, bool p_force = false);
 	void _on_fx_draw();
 	void _update_verties_count();
+
 	void _update_children();
+	void _update_attachment_nodes();
 
 protected:
 	static Array *invalid_names;

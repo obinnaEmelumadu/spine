@@ -388,6 +388,11 @@ void Spine::_animation_process(float p_delta) {
 	spAnimationState_apply(state, skeleton);
 	spSkeleton_updateWorldTransform(skeleton);
 
+	_update_attachment_nodes();
+	process_delta = 0;
+}
+
+void Spine::_update_attachment_nodes() {
 	for (AttachmentNodes::Element *E = attachment_nodes.front(); E; E = E->next()) {
 
 		AttachmentNode &info = E->get();
@@ -411,7 +416,6 @@ void Spine::_animation_process(float p_delta) {
 		//node->call("set_rotation", Math::atan2(bone->c, bone->d) + Math::deg2rad(info.rot));
 	}
 	update();
-	process_delta = 0;
 }
 
 void Spine::_set_process(bool p_process, bool p_force) {
@@ -691,22 +695,31 @@ Ref<Spine::SpineResource> Spine::get_resource() {
 
 void Spine::add_node_to_slot(const String &p_slot_name, const Variant &p_node) {
 	// first we add the node as a child to the slot
-	// find the slot's node
-	bool found = false;
 	for (int i = 0; i < get_child_count(); i++) {
 		auto child = get_child(i);
 		if (child->get_name() == p_slot_name) {
-			child->add_child(p_node);
-			found = true;
+			Node* slot_root;
+			if (child->has_node( NodePath("slot_root") )) {
+				slot_root = child->get_node(NodePath("slot_root"));
+			}
+			else {
+				// if the slot doesn't have a slot_root yet, create one
+				slot_root = memnew(Node2D);
+				slot_root->set_name("slot_root");
+				child->add_child(slot_root);
+
+				// add the slot_root as an attachment to the correct bone
+				spSlot *slot = spSkeleton_findSlot(skeleton, p_slot_name.utf8().get_data());
+				spBone *bone = slot->bone;
+
+				this->add_attachment_node(bone->data->name, slot_root);
+			}
+			// add the node to the requested slot's slot_root
+			slot_root->add_child(p_node);
 			break;
 		}
 	}
-
-	// next we add the node as an attachment to the correct bone
-	spSlot* slot = spSkeleton_findSlot(skeleton, p_slot_name.utf8().get_data());
-	spBone *bone = slot->bone;
-	
-	this->add_attachment_node(bone->data->name, p_node);
+	_update_attachment_nodes();
 }
 
 Array Spine::get_animation_names() const {
