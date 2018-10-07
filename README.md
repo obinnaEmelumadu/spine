@@ -1,3 +1,36 @@
+## Added Functionality in this Fork
+
+This version of the Godot Spine module allows:
+
+### 1. Adding normal Godot nodes (Node2Ds) as children of Spine Slots.
+
+Example:
+```
+	var sprite = Sprite.new()
+	sprite.rotation_degrees = 45
+	sprite.position.y = 90
+	sprite.texture = load("res://machine_gun.png")	
+	$Spine.add_node_to_slot("left-hand", sprite)
+```
+The added node will respect the slot's draw order and the parent bone's transform.
+This allows children Godot nodes to appear between the Spine character's body parts.
+
+### 2. Programmatically manipulating slot nodes.
+
+The Spine instance will have children nodes named after Spine slots which can be manipulated.
+
+Examples:
+```
+	# make face red
+	$Spine.get_node("head").self_modulate = Color(1.0, 0, 0)
+  
+	# make right arm and hand appear above environment
+	$Spine.get_node("right-arm").z_index = 1000
+	$Spine.get_node("right-hand").z_index = 1000
+```
+
+## Original README Below
+
 This module adds [Spine](http://esotericsoftware.com/) animation support for godot game engine 3.0. It has been tested with Godot 3.0.2, but may contain bugs.
 The 2.1 module is also avaiable in the [2.1 branch](https://github.com/GodotExplorer/spine/tree/2.1)
 
