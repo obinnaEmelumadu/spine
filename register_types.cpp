@@ -36,6 +36,7 @@
 #include <spine/extension.h>
 #include <spine/spine.h>
 #include "spine.h"
+#include "spine_slot.h"
 
 #include "core/os/file_access.h"
 #include "core/os/os.h"
@@ -233,6 +234,8 @@ void register_spine_types() {
 
 	ClassDB::register_class<Spine>();
 	ClassDB::register_class<Spine::SpineResource>();
+	ClassDB::register_class<SpineSlot>();
+
 	resource_loader_spine = memnew( ResourceFormatLoaderSpine );
 	ResourceLoader::add_resource_format_loader(resource_loader_spine);
 

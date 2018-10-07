@@ -38,6 +38,8 @@
 #include <spine/spine.h>
 #include <core/method_bind_ext.gen.inc>
 
+#include "spine_slot.h"
+
 Spine::SpineResource::SpineResource() {
 
 	atlas = NULL;
@@ -140,15 +142,17 @@ void Spine::_on_fx_draw() {
 	fx_batcher.reset();
 	RID eci = fx_node->get_canvas_item();
 	// VisualServer::get_singleton()->canvas_item_add_set_blend_mode(eci, VS::MaterialBlendMode(fx_node->get_blend_mode()));
-	fx_batcher.flush();
+	fx_batcher.flush(eci);
 }
 
-void Spine::_animation_draw() {
-
+void Spine::draw_slot(SpineSlot *spine_slot) {
 	if (skeleton == NULL)
 		return;
 
-	spColor_setFromFloats(&skeleton->color, modulate.r, modulate.g, modulate.b, modulate.a);
+	auto slot = spine_slot->slot;
+
+	if (!slot->attachment)
+		return;
 
 	int additive = 0;
 	int fx_additive = 0;
@@ -165,86 +169,97 @@ void Spine::_animation_draw() {
 
 	const char *fx_prefix = fx_slot_prefix.get_data();
 
-	for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
+	bool is_fx = false;
+	Ref<Texture> texture;
 
-		spSlot *slot = skeleton->drawOrder[i];
-		if (!slot->attachment) continue;
-		bool is_fx = false;
-		Ref<Texture> texture;
-		switch (slot->attachment->type) {
+	switch (slot->attachment->type) {
 
-			case SP_ATTACHMENT_REGION: {
+		case SP_ATTACHMENT_REGION: {
 
-				spRegionAttachment *attachment = (spRegionAttachment *)slot->attachment;
-				is_fx = strstr(attachment->path, fx_prefix) != NULL;
-				spRegionAttachment_computeWorldVertices(attachment, slot->bone, world_verts.ptrw(), 0, 2);
-				texture = spine_get_texture(attachment);
-				uvs = attachment->uvs;
-				verties_count = 8;
-				static unsigned short quadTriangles[6] = { 0, 1, 2, 2, 3, 0 };
-				triangles = quadTriangles;
-				triangles_count = 6;
-				r = attachment->color.r;
-				g = attachment->color.g;
-				b = attachment->color.b;
-				a = attachment->color.a;
-				break;
-			}
-			case SP_ATTACHMENT_MESH: {
-
-				spMeshAttachment *attachment = (spMeshAttachment *)slot->attachment;
-				is_fx = strstr(attachment->path, fx_prefix) != NULL;
-				spVertexAttachment_computeWorldVertices(SUPER(attachment), slot, 0, attachment->super.worldVerticesLength, world_verts.ptrw(), 0, 2);
-				texture = spine_get_texture(attachment);
-				uvs = attachment->uvs;
-				verties_count = ((spVertexAttachment *)attachment)->worldVerticesLength;
-				triangles = attachment->triangles;
-				triangles_count = attachment->trianglesCount;
-				r = attachment->color.r;
-				g = attachment->color.g;
-				b = attachment->color.b;
-				a = attachment->color.a;
-				break;
-			}
-
-			case SP_ATTACHMENT_BOUNDING_BOX: {
-
-				continue;
-			}
+			spRegionAttachment *attachment = (spRegionAttachment *)slot->attachment;
+			is_fx = strstr(attachment->path, fx_prefix) != NULL;
+			spRegionAttachment_computeWorldVertices(attachment, slot->bone, world_verts.ptrw(), 0, 2);
+			texture = spine_get_texture(attachment);
+			uvs = attachment->uvs;
+			verties_count = 8;
+			static unsigned short quadTriangles[6] = { 0, 1, 2, 2, 3, 0 };
+			triangles = quadTriangles;
+			triangles_count = 6;
+			r = attachment->color.r;
+			g = attachment->color.g;
+			b = attachment->color.b;
+			a = attachment->color.a;
+			break;
 		}
-		if (texture.is_null())
-			continue;
-		/*
-		if (is_fx && slot->data->blendMode != fx_additive) {
+		case SP_ATTACHMENT_MESH: {
 
-			fx_batcher.add_set_blender_mode(slot->data->additiveBlending
-				? VisualServer::MATERIAL_BLEND_MODE_ADD
-				: get_blend_mode()
-			);
-			fx_additive = slot->data->additiveBlending;
+			spMeshAttachment *attachment = (spMeshAttachment *)slot->attachment;
+			is_fx = strstr(attachment->path, fx_prefix) != NULL;
+			spVertexAttachment_computeWorldVertices(SUPER(attachment), slot, 0, attachment->super.worldVerticesLength, world_verts.ptrw(), 0, 2);
+			texture = spine_get_texture(attachment);
+			uvs = attachment->uvs;
+			verties_count = ((spVertexAttachment *)attachment)->worldVerticesLength;
+			triangles = attachment->triangles;
+			triangles_count = attachment->trianglesCount;
+			r = attachment->color.r;
+			g = attachment->color.g;
+			b = attachment->color.b;
+			a = attachment->color.a;
+			break;
 		}
-		else if (slot->data->additiveBlending != additive) {
 
-			batcher.add_set_blender_mode(slot->data->additiveBlending
-				? VisualServer::MATERIAL_BLEND_MODE_ADD
-				: fx_node->get_blend_mode()
-			);
-			additive = slot->data->additiveBlending;
+		case SP_ATTACHMENT_BOUNDING_BOX: {
+			return;
 		}
-		 */
-
-		color.a = skeleton->color.a * slot->color.a * a;
-		color.r = skeleton->color.r * slot->color.r * r;
-		color.g = skeleton->color.g * slot->color.g * g;
-		color.b = skeleton->color.b * slot->color.b * b;
-
-		if (is_fx)
-			fx_batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
-		else
-			batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
 	}
-	batcher.flush();
+	if (texture.is_null())
+		return;
+
+	/*
+	if (is_fx && slot->data->blendMode != fx_additive) {
+
+		fx_batcher.add_set_blender_mode(slot->data->additiveBlending
+			? VisualServer::MATERIAL_BLEND_MODE_ADD
+			: get_blend_mode()
+		);
+		fx_additive = slot->data->additiveBlending;
+	}
+	else if (slot->data->additiveBlending != additive) {
+
+		batcher.add_set_blender_mode(slot->data->additiveBlending
+			? VisualServer::MATERIAL_BLEND_MODE_ADD
+			: fx_node->get_blend_mode()
+		);
+		additive = slot->data->additiveBlending;
+	}
+	*/
+
+	color.a = skeleton->color.a * slot->color.a * a;
+	color.r = skeleton->color.r * slot->color.r * r;
+	color.g = skeleton->color.g * slot->color.g * g;
+	color.b = skeleton->color.b * slot->color.b * b;
+
+	if (is_fx)
+		fx_batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
+	else
+		batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
+
+	batcher.flush(spine_slot->get_canvas_item());
 	fx_node->update();
+}
+
+void Spine::_animation_draw() {
+
+	if (skeleton == NULL)
+		return;
+
+	spColor_setFromFloats(&skeleton->color, modulate.r, modulate.g, modulate.b, modulate.a);
+
+	// Slot drawing has been moved to draw_slot which is called by SpineSlot
+
+	int verties_count = 0;
+	unsigned short *triangles = NULL;
+	int triangles_count = 0;
 
 	// Slots.
 	if (debug_attachment_region || debug_attachment_mesh || debug_attachment_skinned_mesh || debug_attachment_bounding_box) {
@@ -389,9 +404,11 @@ void Spine::_animation_process(float p_delta) {
 			continue;
 		}
 		spBone *bone = info.bone;
-		node->call("set_position", Vector2(bone->worldX + bone->skeleton->x, -bone->worldY + bone->skeleton->y) + info.ofs);
-		node->call("set_scale", Vector2(spBone_getWorldScaleX(bone), spBone_getWorldScaleY(bone)) * info.scale);
-		node->call("set_rotation", Math::atan2(bone->c, bone->d) + Math::deg2rad(info.rot));
+		node->set_position(Vector2(bone->worldX + bone->skeleton->x, -bone->worldY + bone->skeleton->y) + info.ofs);
+		node->set_scale(Vector2(spBone_getWorldScaleX(bone), spBone_getWorldScaleY(bone)) * info.scale);
+		node->set_rotation_degrees(-spBone_getWorldRotationY(bone));
+
+		//node->call("set_rotation", Math::atan2(bone->c, bone->d) + Math::deg2rad(info.rot));
 	}
 	update();
 	process_delta = 0;
@@ -577,16 +594,21 @@ void Spine::_notification(int p_what) {
 			if (animation_process_mode == ANIMATION_PROCESS_FIXED)
 				break;
 
-			if (processing)
+			if (processing) {
 				_animation_process(get_process_delta_time());
+				_update_children();
+			}	
 		} break;
 		case NOTIFICATION_PHYSICS_PROCESS: {
 
 			if (animation_process_mode == ANIMATION_PROCESS_IDLE)
 				break;
 
-			if (processing)
+			if (processing) {
 				_animation_process(get_physics_process_delta_time());
+				_update_children();
+			}
+				
 		} break;
 
 		case NOTIFICATION_DRAW: {
@@ -598,6 +620,15 @@ void Spine::_notification(int p_what) {
 
 			stop_all();
 		} break;
+	}
+}
+
+void Spine::_update_children() {
+	for (int i = 0; i < get_child_count(); i++) {
+		auto child = Object::cast_to<Node2D>(get_child(i));
+		if (child != NULL) {
+			child->update();
+		}
 	}
 }
 
@@ -623,6 +654,26 @@ void Spine::set_resource(Ref<Spine::SpineResource> p_data) {
 
 	_update_verties_count();
 
+	// update children slots
+
+	// remove old children
+	while (get_child_count() > 0) {
+		auto child = get_child(0);
+		remove_child(child);
+		child->queue_delete();
+	}
+
+	// add new slots children
+	for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
+		spSlot *slot = skeleton->drawOrder[i];
+		auto slot_node = memnew(SpineSlot);
+		slot_node->init(this, slot);
+		slot_node->set_name(slot->data->name);
+		slot_node->set_z_index(i);
+		add_child(slot_node);
+	}
+
+
 	if (skin != "")
 		set_skin(skin);
 	if (current_animation != "[stop]")
@@ -636,6 +687,26 @@ void Spine::set_resource(Ref<Spine::SpineResource> p_data) {
 Ref<Spine::SpineResource> Spine::get_resource() {
 
 	return res;
+}
+
+void Spine::add_node_to_slot(const String &p_slot_name, const Variant &p_node) {
+	// first we add the node as a child to the slot
+	// find the slot's node
+	bool found = false;
+	for (int i = 0; i < get_child_count(); i++) {
+		auto child = get_child(i);
+		if (child->get_name() == p_slot_name) {
+			child->add_child(p_node);
+			found = true;
+			break;
+		}
+	}
+
+	// next we add the node as an attachment to the correct bone
+	spSlot* slot = spSkeleton_findSlot(skeleton, p_slot_name.utf8().get_data());
+	spBone *bone = slot->bone;
+	
+	this->add_attachment_node(bone->data->name, p_node);
 }
 
 Array Spine::get_animation_names() const {
@@ -1216,6 +1287,7 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_attachment", "slot_name", "attachment"), &Spine::set_attachment);
 	ClassDB::bind_method(D_METHOD("has_attachment_node", "bone_name", "node"), &Spine::has_attachment_node);
 	ClassDB::bind_method(D_METHOD("add_attachment_node", "bone_name", "node", "ofs", "scale", "rot"), &Spine::add_attachment_node, Vector2(0, 0), Vector2(1, 1), 0);
+	ClassDB::bind_method(D_METHOD("add_node_to_slot", "slot_name", "node"), &Spine::add_node_to_slot);
 	ClassDB::bind_method(D_METHOD("remove_attachment_node", "p_bone_name", "node"), &Spine::remove_attachment_node);
 	ClassDB::bind_method(D_METHOD("get_bounding_box", "slot_name", "attachment_name"), &Spine::get_bounding_box);
 	ClassDB::bind_method(D_METHOD("add_bounding_box", "bone_name", "slot_name", "attachment_name", "collision_object_2d", "ofs", "scale", "rot"), &Spine::add_bounding_box, Vector2(0, 0), Vector2(1, 1), 0);

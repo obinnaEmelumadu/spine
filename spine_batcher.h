@@ -90,7 +90,7 @@ public:
 
 	void add_set_blender_mode(bool p_mode);
 
-	void flush();
+	void flush(RID ci);
 
 	SpineBatcher(Node2D *owner);
 	~SpineBatcher();

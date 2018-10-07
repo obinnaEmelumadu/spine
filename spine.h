@@ -37,6 +37,7 @@
 #include "spine_batcher.h"
 #include "core/array.h"
 
+class SpineSlot;
 class CollisionObject2D;
 
 class Spine : public Node2D {
@@ -128,6 +129,7 @@ private:
 	void _set_process(bool p_process, bool p_force = false);
 	void _on_fx_draw();
 	void _update_verties_count();
+	void _update_children();
 
 protected:
 	static Array *invalid_names;
@@ -233,6 +235,12 @@ public:
 	//void advance(float p_time);
 
 	virtual Rect2 _edit_get_rect() const;
+
+	// used by SpineSlot to draw itself
+	void draw_slot(SpineSlot *slot);
+
+	// adds node to slot, using slot's draw order and bone position/transform for the node
+	void add_node_to_slot(const String &p_slot_name, const Variant &p_node);
 
 	Spine();
 	virtual ~Spine();

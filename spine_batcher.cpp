@@ -127,9 +127,8 @@ void SpineBatcher::add_set_blender_mode(bool p_mode) {
 	element_list.push_back(memnew(SetBlendMode(p_mode)));
 }
 
-void SpineBatcher::flush() {
+void SpineBatcher::flush(RID ci) {
 
-	RID ci = owner->get_canvas_item();
 	push_elements();
 
 	for (List<Command *>::Element *E = element_list.front(); E; E = E->next()) {
