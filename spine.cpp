@@ -156,8 +156,6 @@ void Spine::draw_slot(SpineSlot *spine_slot) {
 
 	int additive = 0;
 	int fx_additive = 0;
-	Color color;
-	const float *uvs = NULL;
 	int verties_count = 0;
 	unsigned short *triangles = NULL;
 	int triangles_count = 0;
@@ -175,36 +173,106 @@ void Spine::draw_slot(SpineSlot *spine_slot) {
 	switch (slot->attachment->type) {
 
 		case SP_ATTACHMENT_REGION: {
-
 			spRegionAttachment *attachment = (spRegionAttachment *)slot->attachment;
 			is_fx = strstr(attachment->path, fx_prefix) != NULL;
-			spRegionAttachment_computeWorldVertices(attachment, slot->bone, world_verts.ptrw(), 0, 2);
+
+			// get points from Spine (2 pairs of x/ys for 4 points)
+			float spPoints[10];
+			int spPointCount = 8/2;
+			spRegionAttachment_computeWorldVertices(attachment, slot->bone, spPoints, 0, 2);
+
+			// get texture and uvs from Spine
 			texture = spine_get_texture(attachment);
-			uvs = attachment->uvs;
-			verties_count = 8;
-			static unsigned short quadTriangles[6] = { 0, 1, 2, 2, 3, 0 };
-			triangles = quadTriangles;
-			triangles_count = 6;
-			r = attachment->color.r;
-			g = attachment->color.g;
-			b = attachment->color.b;
-			a = attachment->color.a;
+			const float *spUVs = attachment->uvs;
+
+			// the indices are fixed
+			static int spIndices[6] = { 0, 1, 2, 2, 3, 0 };
+			int spIndicesCount = 6;
+
+			// compute colors from Spine
+			Color color;
+			color.r = skeleton->color.r * slot->color.r * attachment->color.r;
+			color.g = skeleton->color.g * slot->color.g * attachment->color.g;
+			color.b = skeleton->color.b * slot->color.b * attachment->color.b;
+			color.a = skeleton->color.a * slot->color.a * attachment->color.a;
+
+			Vector<Vector2> p_points;
+			Vector<Color> p_colors;
+			Vector<Vector2> p_uvs;
+
+			int atPoint = 0;
+			for (int i = 0; i < spPointCount; i++, atPoint += 2) {
+				float xval = spPoints[atPoint];
+				float yval = spPoints[atPoint+1];
+				p_points.push_back(Vector2( flip_x ? -xval : xval, flip_y ? yval : -yval));
+				p_colors.push_back(color);
+				p_uvs.push_back(Vector2(spUVs[atPoint], spUVs[atPoint + 1]));
+			}
+			
+			Vector<int> p_indices;
+			p_indices.resize(spIndicesCount);
+			memcpy(p_indices.ptrw(), spIndices, spIndicesCount * sizeof(int));
+			
+			VisualServer::get_singleton()->canvas_item_add_triangle_array(spine_slot->get_canvas_item(),
+					p_indices,
+					p_points,
+					p_colors,
+					p_uvs,
+					Vector<int>(),
+					Vector<float>(),
+					texture->get_rid());
 			break;
 		}
 		case SP_ATTACHMENT_MESH: {
-
 			spMeshAttachment *attachment = (spMeshAttachment *)slot->attachment;
 			is_fx = strstr(attachment->path, fx_prefix) != NULL;
+
+			// get points from Spine (2 pairs of x/ys for 4 points)
 			spVertexAttachment_computeWorldVertices(SUPER(attachment), slot, 0, attachment->super.worldVerticesLength, world_verts.ptrw(), 0, 2);
+			float *spPoints = world_verts.ptrw();
+			int spPointCount = ((spVertexAttachment *)attachment)->worldVerticesLength / 2;
+
+			// get texture and uvs from Spine
 			texture = spine_get_texture(attachment);
-			uvs = attachment->uvs;
-			verties_count = ((spVertexAttachment *)attachment)->worldVerticesLength;
-			triangles = attachment->triangles;
-			triangles_count = attachment->trianglesCount;
-			r = attachment->color.r;
-			g = attachment->color.g;
-			b = attachment->color.b;
-			a = attachment->color.a;
+			const float *spUVs = attachment->uvs;
+
+			// the indices are fixed
+			unsigned short *spIndices = attachment->triangles;
+			int spIndicesCount = attachment->trianglesCount;
+
+			// compute colors from Spine
+			Color color;
+			color.r = skeleton->color.r * slot->color.r * attachment->color.r;
+			color.g = skeleton->color.g * slot->color.g * attachment->color.g;
+			color.b = skeleton->color.b * slot->color.b * attachment->color.b;
+			color.a = skeleton->color.a * slot->color.a * attachment->color.a;
+
+			Vector<Vector2> p_points;
+			Vector<Color> p_colors;
+			Vector<Vector2> p_uvs;
+
+			int atPoint = 0;
+			for (int i = 0; i < spPointCount; i++, atPoint += 2) {
+				float xval = spPoints[atPoint];
+				float yval = spPoints[atPoint + 1];
+				p_points.push_back(Vector2(flip_x ? -xval : xval, flip_y ? yval : -yval));
+				p_colors.push_back(color);
+				p_uvs.push_back(Vector2(spUVs[atPoint], spUVs[atPoint + 1]));
+			}
+
+			Vector<int> p_indices;
+			for (int i = 0; i < spIndicesCount; i++) {
+				p_indices.push_back(spIndices[i]);
+			}
+
+			VisualServer::get_singleton()->canvas_item_add_triangle_array(spine_slot->get_canvas_item(),
+					p_indices,
+					p_points,
+					p_colors,
+					p_uvs,
+					Vector<int>(),
+					Vector<float>(),
+					texture->get_rid());
 			break;
 		}
 
@@ -234,17 +302,17 @@ void Spine::draw_slot(SpineSlot *spine_slot) {
 	}
 	*/
 
-	color.a = skeleton->color.a * slot->color.a * a;
-	color.r = skeleton->color.r * slot->color.r * r;
-	color.g = skeleton->color.g * slot->color.g * g;
-	color.b = skeleton->color.b * slot->color.b * b;
+	//color.a = skeleton->color.a * slot->color.a * a;
+	//color.r = skeleton->color.r * slot->color.r * r;
+	//color.g = skeleton->color.g * slot->color.g * g;
+	//color.b = skeleton->color.b * slot->color.b * b;
 
-	if (is_fx)
-		fx_batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
-	else
-		batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
+	//if (is_fx)
+		//fx_batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
+//	else
+//		batcher.add(texture, world_verts.ptr(), uvs, verties_count, triangles, triangles_count, &color, flip_x, flip_y);
 
-	batcher.flush(spine_slot->get_canvas_item());
+	// batcher.flush(spine_slot->get_canvas_item());
 	fx_node->update();
 }
 
