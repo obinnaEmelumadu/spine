@@ -1,5 +1,7 @@
 ## Added Functionality in this Fork
 
+__Note: Due to Godot issue [#19943](https://github.com/godotengine/godot/issues/19943), this fork will currently have lower performance.__
+
 This version of the Godot Spine module allows:
 
 ### 1. Adding normal Godot nodes (Node2Ds) as children of Spine Slots.
