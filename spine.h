@@ -207,6 +207,13 @@ public:
 	Dictionary get_attachment(const String& p_slot_name, const String& p_attachment_name) const;
 	/* Returns null if the bone was not found. */
 	Dictionary get_bone(const String& p_bone_name) const;
+
+	void scale_Bone_x(const String &p_bone_name, const float x);
+
+	void scale_Bone_y(const String &p_bone_name, const float y);
+
+	void update_Bone_transform(const String &p_bone_name);
+
 	/* Returns null if the slot was not found. */
 	Dictionary get_slot(const String& p_slot_name) const;
 	/* Returns false if the slot or attachment was not found. */
