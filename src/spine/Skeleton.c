@@ -469,6 +469,10 @@ spBone* spSkeleton_findBone (const spSkeleton* self, const char* boneName) {
 	return 0;
 }
 
+spBoneData* spSkeleton_getBone (const spSkeleton* self, const int index) {
+	return self->data->bones[index];
+}
+
 int spSkeleton_findBoneIndex (const spSkeleton* self, const char* boneName) {
 	int i;
 	for (i = 0; i < self->bonesCount; ++i)

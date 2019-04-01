@@ -1008,6 +1008,7 @@ bool Spine::set_skin(const String &p_name) {
 	return spSkeleton_setSkinByName(skeleton, p_name.utf8().get_data()) ? true : false;
 }
 
+
 void Spine::set_duration(float p_duration) {
 	// Ignore p_duration, because it can't actually be affected and this should be read-only
 	duration = actual_duration;
@@ -1023,8 +1024,13 @@ Dictionary Spine::get_skeleton() const {
 
 	ERR_FAIL_COND_V(skeleton == NULL, Variant());
 	Dictionary dict;
+	Dictionary bones;
+	for (int i = 0; i < skeleton->bonesCount; i++){
+		bones[i] = spSkeleton_getBone(skeleton, i)->name;
+	}
 
 	dict["bonesCount"] = skeleton->bonesCount;
+	dict["bones"] = bones;
 	dict["slotCount"] = skeleton->slotsCount;
 	dict["ikConstraintsCount"] = skeleton->ikConstraintsCount;
 	dict["time"] = skeleton->time;
