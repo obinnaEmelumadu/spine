@@ -698,17 +698,14 @@ void Spine::_update_children() {
 	int z = 0;
 	for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
 		spSlot *slot = skeleton->drawOrder[i];	
-		for (int i = 0; i < get_child_count(); i++) {
-			auto child = Object::cast_to<Node2D>(get_child(i));
-			if (child != NULL) {
-				if (slot->data->name == child->get_name()){
-					if (child->is_visible()){ //z-compression, set only z for visible nodes
-						child->set_z_index(z);
-						z += 1;
-					}					
-					child->update();
-					break;
-				}
+		for (int j = 0; j < get_child_count(); j++) {
+			auto child = Object::cast_to<Node2D>(get_child(j));
+			if (child != NULL && child->is_visible() && slot->data->name == child->get_name()){
+				//z-compression, set only z for visible nodes
+				child->set_z_index(z);
+				z += 1;				
+				child->update();
+				break;
 			}
 		}
 	}
