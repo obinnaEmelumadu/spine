@@ -545,6 +545,11 @@ bool Spine::_set(const StringName &p_name, const Variant &p_value) {
 	else if (name == "debug/bounding_box")
 		set_debug_attachment(DEBUG_ATTACHMENT_BOUNDING_BOX, p_value);
 
+	else if (name == "split/node")
+		set_splitNode(p_value);
+	else if (name == "split/slot")
+		set_splitSlot(p_value);
+
 	return true;
 }
 
@@ -570,6 +575,11 @@ bool Spine::_get(const StringName &p_name, Variant &r_ret) const {
 	else if (name == "debug/bounding_box")
 		r_ret = is_debug_attachment(DEBUG_ATTACHMENT_BOUNDING_BOX);
 
+	else if (name == "split/node")
+		r_ret = splitNodePath;
+	else if (name == "split/slot")
+		r_ret = splitSlot;		
+
 	return true;
 }
 
@@ -582,6 +592,19 @@ float Spine::get_animation_length(String p_animation) const {
 		}
 	}
 	return 0;
+}
+
+void Spine::set_splitNode(NodePath node){
+	splitNodePath = node;
+}
+NodePath Spine::get_splitNode() const {
+	return splitNodePath;
+}
+void Spine::set_splitSlot(String slot){
+	splitSlot = slot;
+}
+String Spine::get_splitSlot() const {
+	return splitSlot;
 }
 
 void Spine::_get_property_list(List<PropertyInfo> *p_list) const {
@@ -634,6 +657,9 @@ void Spine::_get_property_list(List<PropertyInfo> *p_list) const {
 	p_list->push_back(PropertyInfo(Variant::BOOL, "debug/mesh", PROPERTY_HINT_NONE));
 	p_list->push_back(PropertyInfo(Variant::BOOL, "debug/skinned_mesh", PROPERTY_HINT_NONE));
 	p_list->push_back(PropertyInfo(Variant::BOOL, "debug/bounding_box", PROPERTY_HINT_NONE));
+
+	p_list->push_back(PropertyInfo(Variant::NODE_PATH, "split/node"));
+	p_list->push_back(PropertyInfo(Variant::STRING, "split/slot", PROPERTY_HINT_ENUM));
 }
 
 void Spine::_notification(int p_what) {
@@ -1412,6 +1438,11 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_debug_attachment", "mode", "enable"), &Spine::set_debug_attachment);
 	ClassDB::bind_method(D_METHOD("is_debug_attachment", "mode"), &Spine::is_debug_attachment);
 
+	ClassDB::bind_method(D_METHOD("set_splitNode", "node_name"), &Spine::set_splitNode);
+	ClassDB::bind_method(D_METHOD("get_splitNode"), &Spine::get_splitNode);
+	ClassDB::bind_method(D_METHOD("set_splitSlot", "slot_name"), &Spine::set_splitSlot);
+	ClassDB::bind_method(D_METHOD("get_splitSlot"), &Spine::get_splitSlot);			
+
 	ClassDB::bind_method(D_METHOD("_on_fx_draw"), &Spine::_on_fx_draw);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "process_mode", PROPERTY_HINT_ENUM, "Fixed,Idle"), "set_animation_process_mode", "get_animation_process_mode");
@@ -1425,7 +1456,6 @@ void Spine::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "fx_prefix"), "set_fx_slot_prefix", "get_fx_slot_prefix");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "resource", PROPERTY_HINT_RESOURCE_TYPE, "SpineResource"), "set_resource", "get_resource"); //, PROPERTY_USAGE_NOEDITOR));
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "playback/duration", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_duration", "get_duration");
-
 
 	ADD_SIGNAL(MethodInfo("animation_start", PropertyInfo(Variant::INT, "track")));
 	ADD_SIGNAL(MethodInfo("animation_complete", PropertyInfo(Variant::INT, "track"), PropertyInfo(Variant::INT, "loop_count")));

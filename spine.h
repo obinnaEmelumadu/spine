@@ -98,6 +98,9 @@ private:
 	bool loop;
 	String skin;
 
+	NodePath splitNodePath;
+	String splitSlot;
+
 	Color modulate;
 	bool flip_x, flip_y;
 	SpineBatcher batcher;
@@ -200,6 +203,12 @@ public:
 	* attachment is attached from the new skin. Returns false if the skin was not found.
 	* @param skin May be 0.*/
 	bool set_skin(const String& p_name);
+
+	// split Spine around a node
+	void set_splitNode(NodePath path);
+	NodePath get_splitNode() const;
+	void set_splitSlot(String slotName);
+	String get_splitSlot() const;
 
 	//spAttachment* get_attachment(const char* slotName, const char* attachmentName) const;
 	Dictionary get_skeleton() const;
