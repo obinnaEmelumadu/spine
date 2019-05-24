@@ -549,6 +549,8 @@ bool Spine::_set(const StringName &p_name, const Variant &p_value) {
 		set_splitNode(p_value);
 	else if (name == "split/slot")
 		set_splitSlot(p_value);
+	else if (name == "split/split")
+		set_split(p_value);		
 
 	return true;
 }
@@ -578,7 +580,9 @@ bool Spine::_get(const StringName &p_name, Variant &r_ret) const {
 	else if (name == "split/node")
 		r_ret = splitNodePath;
 	else if (name == "split/slot")
-		r_ret = splitSlot;		
+		r_ret = splitSlot;
+	else if (name == "split/split")
+		r_ret = split;			
 
 	return true;
 }
@@ -605,6 +609,12 @@ void Spine::set_splitSlot(String slot){
 }
 String Spine::get_splitSlot() const {
 	return splitSlot;
+}
+void Spine::set_split(bool value){
+	split = value;
+}
+bool Spine::get_split() const {
+	return split;
 }
 
 void Spine::_get_property_list(List<PropertyInfo> *p_list) const {
@@ -658,8 +668,24 @@ void Spine::_get_property_list(List<PropertyInfo> *p_list) const {
 	p_list->push_back(PropertyInfo(Variant::BOOL, "debug/skinned_mesh", PROPERTY_HINT_NONE));
 	p_list->push_back(PropertyInfo(Variant::BOOL, "debug/bounding_box", PROPERTY_HINT_NONE));
 
+	p_list->push_back(PropertyInfo(Variant::BOOL, "split/split"));
 	p_list->push_back(PropertyInfo(Variant::NODE_PATH, "split/node"));
-	p_list->push_back(PropertyInfo(Variant::STRING, "split/slot", PROPERTY_HINT_ENUM));
+	names.clear();
+	{
+		if (state != NULL) {
+			for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
+				names.push_back(skeleton->drawOrder[i]->data->name);
+			}
+		}
+		String hint;
+		for (List<String>::Element *E = names.front(); E; E = E->next()) {
+			if (E != names.front())
+				hint += ",";
+			hint += E->get();
+		}	
+		p_list->push_back(PropertyInfo(Variant::STRING, "split/slot", PROPERTY_HINT_ENUM, hint));
+	}
+
 }
 
 void Spine::_notification(int p_what) {
@@ -722,12 +748,16 @@ void Spine::_notification(int p_what) {
 
 void Spine::_update_children() {
 	int z = 0;
+	bool slotfound = false;
+	int zadd = 0;
 	for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
+
 		spSlot *slot = skeleton->drawOrder[i];	
 		for (int j = 0; j < get_child_count(); j++) {
 			auto child = Object::cast_to<Node2D>(get_child(j));
 			if (child != NULL && child->is_visible() && slot->data->name == child->get_name()){
 				//z-compression, set only z for visible nodes
+
 				child->set_z_index(z);
 				z += 1;				
 				child->update();
@@ -784,6 +814,7 @@ void Spine::set_resource(Ref<Spine::SpineResource> p_data) {
 		play(current_animation, 1, loop);
 	else
 		reset();
+	split = false;
 
 	_change_notify();
 }
@@ -1441,7 +1472,9 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_splitNode", "node_name"), &Spine::set_splitNode);
 	ClassDB::bind_method(D_METHOD("get_splitNode"), &Spine::get_splitNode);
 	ClassDB::bind_method(D_METHOD("set_splitSlot", "slot_name"), &Spine::set_splitSlot);
-	ClassDB::bind_method(D_METHOD("get_splitSlot"), &Spine::get_splitSlot);			
+	ClassDB::bind_method(D_METHOD("get_splitSlot"), &Spine::get_splitSlot);	
+	ClassDB::bind_method(D_METHOD("set_split", "split"), &Spine::set_split);
+	ClassDB::bind_method(D_METHOD("get_split"), &Spine::get_split);			
 
 	ClassDB::bind_method(D_METHOD("_on_fx_draw"), &Spine::_on_fx_draw);
 

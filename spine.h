@@ -100,6 +100,7 @@ private:
 
 	NodePath splitNodePath;
 	String splitSlot;
+	bool split;
 
 	Color modulate;
 	bool flip_x, flip_y;
@@ -209,6 +210,8 @@ public:
 	NodePath get_splitNode() const;
 	void set_splitSlot(String slotName);
 	String get_splitSlot() const;
+	void set_split(bool slotName);
+	bool get_split() const;	
 
 	//spAttachment* get_attachment(const char* slotName, const char* attachmentName) const;
 	Dictionary get_skeleton() const;
