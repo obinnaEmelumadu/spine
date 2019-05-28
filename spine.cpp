@@ -65,17 +65,17 @@ Array Spine::get_invalid_names() {
 
 void Spine::spine_animation_callback(spAnimationState *p_state, spEventType p_type, spTrackEntry *p_track, spEvent *p_event) {
 
-	((Spine *)p_state->rendererObject)->_on_animation_state_event(p_track->trackIndex, p_type, p_event, 1);
+	((Spine *)p_state->rendererObject)->_on_animation_state_event(p_track, p_type, p_event, 1);
 }
 
-void Spine::_on_animation_state_event(int p_track, spEventType p_type, spEvent *p_event, int p_loop_count) {
+void Spine::_on_animation_state_event(spTrackEntry *p_track, spEventType p_type, spEvent *p_event, int p_loop_count) {
 
 	switch (p_type) {
 		case SP_ANIMATION_START:
-			emit_signal("animation_start", p_track);
+			emit_signal("animation_start", p_track->trackIndex, p_track->animation->name);
 			break;
 		case SP_ANIMATION_COMPLETE:
-			emit_signal("animation_complete", p_track, p_loop_count);
+			emit_signal("animation_complete", p_track->trackIndex, p_track->animation->name, p_loop_count);
 			break;
 		case SP_ANIMATION_EVENT: {
 			Dictionary event;
@@ -83,10 +83,10 @@ void Spine::_on_animation_state_event(int p_track, spEventType p_type, spEvent *
 			event["int"] = p_event->intValue;
 			event["float"] = p_event->floatValue;
 			event["string"] = p_event->stringValue ? p_event->stringValue : "";
-			emit_signal("animation_event", p_track, event);
+			emit_signal("animation_event", p_track->trackIndex, p_track->animation->name, event);
 		} break;
 		case SP_ANIMATION_END:
-			emit_signal("animation_end", p_track);
+			emit_signal("animation_end", p_track->trackIndex, p_track->animation->name);
 			break;
 	}
 }
@@ -551,7 +551,8 @@ bool Spine::_set(const StringName &p_name, const Variant &p_value) {
 		set_splitSlot(p_value);
 	else if (name == "split/split")
 		set_split(p_value);		
-
+	else if (name == "split/distance")
+		set_splitDistance(p_value);	
 	return true;
 }
 
@@ -582,7 +583,9 @@ bool Spine::_get(const StringName &p_name, Variant &r_ret) const {
 	else if (name == "split/slot")
 		r_ret = splitSlot;
 	else if (name == "split/split")
-		r_ret = split;			
+		r_ret = split;
+	else if (name == "split/distance")
+		r_ret = splitDistance;				
 
 	return true;
 }
@@ -615,6 +618,12 @@ void Spine::set_split(bool value){
 }
 bool Spine::get_split() const {
 	return split;
+}
+void Spine::set_splitDistance(int value){
+	splitDistance = value;
+}
+int Spine::get_splitDistance() const {
+	return splitDistance;
 }
 
 void Spine::_get_property_list(List<PropertyInfo> *p_list) const {
@@ -684,6 +693,7 @@ void Spine::_get_property_list(List<PropertyInfo> *p_list) const {
 			hint += E->get();
 		}	
 		p_list->push_back(PropertyInfo(Variant::STRING, "split/slot", PROPERTY_HINT_ENUM, hint));
+		p_list->push_back(PropertyInfo(Variant::INT, "split/distance"));
 	}
 
 }
@@ -1474,7 +1484,9 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_splitSlot", "slot_name"), &Spine::set_splitSlot);
 	ClassDB::bind_method(D_METHOD("get_splitSlot"), &Spine::get_splitSlot);	
 	ClassDB::bind_method(D_METHOD("set_split", "split"), &Spine::set_split);
-	ClassDB::bind_method(D_METHOD("get_split"), &Spine::get_split);			
+	ClassDB::bind_method(D_METHOD("get_split"), &Spine::get_split);	
+	ClassDB::bind_method(D_METHOD("set_splitDistance", "distance"), &Spine::set_splitDistance);
+	ClassDB::bind_method(D_METHOD("get_splitDistance"), &Spine::get_splitDistance);				
 
 	ClassDB::bind_method(D_METHOD("_on_fx_draw"), &Spine::_on_fx_draw);
 
@@ -1490,10 +1502,10 @@ void Spine::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "resource", PROPERTY_HINT_RESOURCE_TYPE, "SpineResource"), "set_resource", "get_resource"); //, PROPERTY_USAGE_NOEDITOR));
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "playback/duration", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_duration", "get_duration");
 
-	ADD_SIGNAL(MethodInfo("animation_start", PropertyInfo(Variant::INT, "track")));
-	ADD_SIGNAL(MethodInfo("animation_complete", PropertyInfo(Variant::INT, "track"), PropertyInfo(Variant::INT, "loop_count")));
-	ADD_SIGNAL(MethodInfo("animation_event", PropertyInfo(Variant::INT, "track"), PropertyInfo(Variant::DICTIONARY, "event")));
-	ADD_SIGNAL(MethodInfo("animation_end", PropertyInfo(Variant::INT, "track")));
+	ADD_SIGNAL(MethodInfo("animation_start", PropertyInfo(Variant::INT, "track"), PropertyInfo(Variant::STRING, "name")));
+	ADD_SIGNAL(MethodInfo("animation_complete", PropertyInfo(Variant::INT, "track"), PropertyInfo(Variant::STRING, "name"), PropertyInfo(Variant::INT, "loop_count")));
+	ADD_SIGNAL(MethodInfo("animation_event", PropertyInfo(Variant::INT, "track"), PropertyInfo(Variant::STRING, "name"), PropertyInfo(Variant::DICTIONARY, "event")));
+	ADD_SIGNAL(MethodInfo("animation_end", PropertyInfo(Variant::INT, "track"), PropertyInfo(Variant::STRING, "name")));
 
 	BIND_ENUM_CONSTANT(ANIMATION_PROCESS_FIXED);
 	BIND_ENUM_CONSTANT(ANIMATION_PROCESS_IDLE);

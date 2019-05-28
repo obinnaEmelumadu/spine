@@ -101,6 +101,7 @@ private:
 	NodePath splitNodePath;
 	String splitSlot;
 	bool split;
+	int splitDistance;
 
 	Color modulate;
 	bool flip_x, flip_y;
@@ -125,7 +126,7 @@ private:
 	AttachmentNodes attachment_nodes;
 
 	static void spine_animation_callback(spAnimationState* p_state, spEventType p_type, spTrackEntry* p_track, spEvent* p_event);
-	void _on_animation_state_event(int p_track, spEventType p_type, spEvent *p_event, int p_loop_count);
+	void _on_animation_state_event(spTrackEntry* p_state, spEventType p_type, spEvent *p_event, int p_loop_count);
 
 	void _spine_dispose();
 	void _animation_process(float p_delta);
@@ -212,6 +213,8 @@ public:
 	String get_splitSlot() const;
 	void set_split(bool slotName);
 	bool get_split() const;	
+	void set_splitDistance(int distance);
+	int get_splitDistance() const;	
 
 	//spAttachment* get_attachment(const char* slotName, const char* attachmentName) const;
 	Dictionary get_skeleton() const;
