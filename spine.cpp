@@ -204,7 +204,7 @@ void Spine::draw_slot(SpineSlot *spine_slot) {
 			for (int i = 0; i < spPointCount; i++, atPoint += 2) {
 				float xval = spPoints[atPoint];
 				float yval = spPoints[atPoint+1];
-				p_points.push_back(Vector2( flip_x ? -xval : xval, flip_y ? yval : -yval));
+				p_points.push_back(Vector2( xval * scaleX, yval * scaleY));
 				p_colors.push_back(color);
 				p_uvs.push_back(Vector2(spUVs[atPoint], spUVs[atPoint + 1]));
 			}
@@ -255,7 +255,7 @@ void Spine::draw_slot(SpineSlot *spine_slot) {
 			for (int i = 0; i < spPointCount; i++, atPoint += 2) {
 				float xval = spPoints[atPoint];
 				float yval = spPoints[atPoint + 1];
-				p_points.push_back(Vector2(flip_x ? -xval : xval, flip_y ? yval : -yval));
+				p_points.push_back(Vector2(xval * scaleX, yval * scaleY));
 				p_colors.push_back(color);
 				p_uvs.push_back(Vector2(spUVs[atPoint], spUVs[atPoint + 1]));
 			}
@@ -383,10 +383,8 @@ void Spine::_animation_draw() {
 			for (int idx = 0; idx < points_size; idx++) {
 
 				Point2 &pt = points[idx];
-				if (flip_x)
-					pt.x = -pt.x;
-				if (!flip_y)
-					pt.y = -pt.y;
+				pt.x = pt.x * scaleX;
+				pt.y = pt.y * scaleY;
 			}
 
 			if (triangles == NULL || triangles_count == 0) {
@@ -420,17 +418,17 @@ void Spine::_animation_draw() {
 			spBone *bone = skeleton->bones[i];
 			float x = bone->data->length * bone->a + bone->worldX;
 			float y = bone->data->length * bone->c + bone->worldY;
-			draw_line(Point2(flip_x ? -bone->worldX : bone->worldX,
-							  flip_y ? bone->worldY : -bone->worldY),
-					Point2(flip_x ? -x : x, flip_y ? y : -y),
+			draw_line(Point2(bone->worldX * scaleX ,
+							  bone->worldY * scaleY),
+					Point2(x * scaleX, y * scaleY),
 					Color(1, 0, 0, 1),
 					2);
 		}
 		// Bone origins.
 		for (int i = 0, n = skeleton->bonesCount; i < n; i++) {
 			spBone *bone = skeleton->bones[i];
-			Rect2 rt = Rect2(flip_x ? -bone->worldX - 1 : bone->worldX - 1,
-					flip_y ? bone->worldY - 1 : -bone->worldY - 1,
+			Rect2 rt = Rect2(bone->worldX * scaleX - 1,
+					bone->worldY * scaleY - 1,
 					3,
 					3);
 			draw_rect(rt, (i == 0) ? Color(0, 1, 0, 1) : Color(0, 0, 1, 1));
@@ -757,7 +755,7 @@ void Spine::_notification(int p_what) {
 }
 
 void Spine::_update_children() {
-	int z = 0;
+	int z = 1;
 	bool slotfound = false;
 	int zadd = 0;
 	for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
@@ -1053,26 +1051,26 @@ Color Spine::get_modulate() const {
 	return modulate;
 }
 
-void Spine::set_flip_x(bool p_flip) {
+void Spine::set_scaleX(int p_scale) {
 
-	flip_x = p_flip;
+	scaleX = p_scale;
 	update();
 }
 
-void Spine::set_flip_y(bool p_flip) {
+void Spine::set_scaleY(int p_scale) {
 
-	flip_y = p_flip;
+	scaleY = -p_scale;
 	update();
 }
 
-bool Spine::is_flip_x() const {
+int Spine::get_scaleX() const {
 
-	return flip_x;
+	return scaleX;
 }
 
-bool Spine::is_flip_y() const {
+int Spine::get_scaleY() const {
 
-	return flip_y;
+	return -scaleY;
 }
 
 bool Spine::set_skin(const String &p_name) {
@@ -1107,8 +1105,8 @@ Dictionary Spine::get_skeleton() const {
 	dict["slotCount"] = skeleton->slotsCount;
 	dict["ikConstraintsCount"] = skeleton->ikConstraintsCount;
 	dict["time"] = skeleton->time;
-	dict["flipX"] = skeleton->flipX;
-	dict["flipY"] = skeleton->flipY;
+	dict["scaleX"] = skeleton->scaleX;
+	dict["scaleY"] = skeleton->scaleY;
 	dict["x"] = skeleton->x;
 	dict["y"] = skeleton->y;
 
@@ -1185,8 +1183,6 @@ Dictionary Spine::get_bone(const String &p_bone_name) const {
 	dict["rotationIK"] = 0; //bone->rotationIK;
 	dict["scaleX"] = bone->scaleX;
 	dict["scaleY"] = bone->scaleY;
-	dict["flipX"] = 0; //bone->flipX;
-	dict["flipY"] = 0; //bone->flipY;
 	dict["m00"] = bone->a; //m00;
 	dict["m01"] = bone->b; //m01;
 	dict["m10"] = bone->c; //m10;
@@ -1196,8 +1192,6 @@ Dictionary Spine::get_bone(const String &p_bone_name) const {
 	dict["worldRotation"] = spBone_getWorldRotationX(bone); //->worldRotation;
 	dict["worldScaleX"] = spBone_getWorldScaleX(bone); //->worldScaleX;
 	dict["worldScaleY"] = spBone_getWorldScaleY(bone); //->worldScaleY;
-	dict["worldFlipX"] = 0; //bone->worldFlipX;
-	dict["worldFlipY"] = 0; //bone->worldFlipY;
 
 	return dict;
 }
@@ -1446,10 +1440,10 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_speed"), &Spine::get_speed);
 	ClassDB::bind_method(D_METHOD("set_skip_frames", "frames"), &Spine::set_skip_frames);
 	ClassDB::bind_method(D_METHOD("get_skip_frames"), &Spine::get_skip_frames);
-	ClassDB::bind_method(D_METHOD("set_flip_x", "fliped"), &Spine::set_flip_x);
-	ClassDB::bind_method(D_METHOD("is_flip_x"), &Spine::is_flip_x);
-	ClassDB::bind_method(D_METHOD("set_flip_y", "fliped"), &Spine::set_flip_y);
-	ClassDB::bind_method(D_METHOD("is_flip_y"), &Spine::is_flip_y);
+	ClassDB::bind_method(D_METHOD("set_scaleX", "p_scale"), &Spine::set_scaleX);
+	ClassDB::bind_method(D_METHOD("get_scaleX"), &Spine::get_scaleX);
+	ClassDB::bind_method(D_METHOD("set_scaleY", "p_scale"), &Spine::set_scaleY);
+	ClassDB::bind_method(D_METHOD("get_scaleY"), &Spine::get_scaleY);
 	ClassDB::bind_method(D_METHOD("set_skin", "skin"), &Spine::set_skin);
 	ClassDB::bind_method(D_METHOD("set_duration", "p_duration"), &Spine::set_duration);
 	ClassDB::bind_method(D_METHOD("get_duration"), &Spine::get_duration);
@@ -1496,8 +1490,8 @@ void Spine::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "skip_frames", PROPERTY_HINT_RANGE, "0, 100, 1"), "set_skip_frames", "get_skip_frames");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_bones"), "set_debug_bones", "is_debug_bones");
 
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flip_x"), "set_flip_x", "is_flip_x");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flip_y"), "set_flip_y", "is_flip_y");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "scaleX"), "set_scaleX", "get_scaleX");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "scaleY"), "set_scaleY", "get_scaleY");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "fx_prefix"), "set_fx_slot_prefix", "get_fx_slot_prefix");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "resource", PROPERTY_HINT_RESOURCE_TYPE, "SpineResource"), "set_resource", "get_resource"); //, PROPERTY_USAGE_NOEDITOR));
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "playback/duration", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_duration", "get_duration");
@@ -1617,8 +1611,8 @@ Spine::Spine()
 	fx_slot_prefix = String("fx/").utf8();
 
 	modulate = Color(1, 1, 1, 1);
-	flip_x = false;
-	flip_y = false;
+	scaleX = 1;
+	scaleY = -1;
 }
 
 Spine::~Spine() {

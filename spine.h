@@ -104,7 +104,7 @@ private:
 	int splitDistance;
 
 	Color modulate;
-	bool flip_x, flip_y;
+	int scaleX, scaleY;
 	SpineBatcher batcher;
 
 	// fx slots (always show on top)
@@ -189,10 +189,10 @@ public:
 	void set_modulate(const Color& p_color);
 	Color get_modulate() const;
 
-	void set_flip_x(bool p_flip);
-	void set_flip_y(bool p_flip);
-	bool is_flip_x() const;
-	bool is_flip_y() const;
+	void set_scaleX(int p_scale);
+	void set_scaleY(int p_scale);
+	int get_scaleX() const;
+	int get_scaleY() const;
 
 	void set_duration(float p_duration);
 	float get_duration() const;
@@ -211,7 +211,7 @@ public:
 	NodePath get_splitNode() const;
 	void set_splitSlot(String slotName);
 	String get_splitSlot() const;
-	void set_split(bool slotName);
+	void set_split(bool split);
 	bool get_split() const;	
 	void set_splitDistance(int distance);
 	int get_splitDistance() const;	
