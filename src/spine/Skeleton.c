@@ -527,6 +527,7 @@ void spSkeleton_setSkin (spSkeleton* self, spSkin* newSkin) {
 		}
 	}
 	CONST_CAST(spSkin*, self->skin) = newSkin;
+	spSkeleton_setToSetupPose(self);
 }
 
 spAttachment* spSkeleton_getAttachmentForSlotName (const spSkeleton* self, const char* slotName, const char* attachmentName) {

@@ -755,22 +755,10 @@ void Spine::_notification(int p_what) {
 }
 
 void Spine::_update_children() {
-	int z = 1;
-	bool slotfound = false;
-	int zadd = 0;
-	for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
-
-		spSlot *slot = skeleton->drawOrder[i];	
-		for (int j = 0; j < get_child_count(); j++) {
-			auto child = Object::cast_to<Node2D>(get_child(j));
-			if (child != NULL && child->is_visible() && slot->data->name == child->get_name()){
-				//z-compression, set only z for visible nodes
-
-				child->set_z_index(z);
-				z += 1;				
-				child->update();
-				break;
-			}
+	for (int i = 0; i < get_child_count(); i++) {
+		auto child = Object::cast_to<Node2D>(get_child(i));
+		if (child != NULL) {
+			child->update();
 		}
 	}
 }
@@ -1078,6 +1066,18 @@ bool Spine::set_skin(const String &p_name) {
 	ERR_FAIL_COND_V(skeleton == NULL, false);
 	return spSkeleton_setSkinByName(skeleton, p_name.utf8().get_data()) ? true : false;
 }
+
+void Spine:: combine_skins(const String& s_name, const Array &skins){
+	spSkin *skin = spSkin_create(s_name.utf8().get_data());
+	for (int i = 0; i < skins.size(); i++){
+		const char* name = String(skins[i]).utf8().get_data();
+		spSkin *tempSkin = spSkeletonData_findSkin(skeleton->data, name);
+		spSkin_addAttachments(skin, tempSkin);
+	}
+	spSkeleton_setSkin(skeleton, skin);
+	return;
+}
+
 
 
 void Spine::set_duration(float p_duration) {
@@ -1445,6 +1445,7 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_scaleY", "p_scale"), &Spine::set_scaleY);
 	ClassDB::bind_method(D_METHOD("get_scaleY"), &Spine::get_scaleY);
 	ClassDB::bind_method(D_METHOD("set_skin", "skin"), &Spine::set_skin);
+	ClassDB::bind_method(D_METHOD("combine_skins", "name", "skins"), &Spine::combine_skins);
 	ClassDB::bind_method(D_METHOD("set_duration", "p_duration"), &Spine::set_duration);
 	ClassDB::bind_method(D_METHOD("get_duration"), &Spine::get_duration);
 	ClassDB::bind_method(D_METHOD("set_animation_process_mode", "mode"), &Spine::set_animation_process_mode);

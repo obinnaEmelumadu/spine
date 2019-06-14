@@ -103,6 +103,15 @@ void spSkin_addAttachment (spSkin* self, int slotIndex, const char* name, spAtta
 		SUB_CAST(_spSkin, self)->entriesHashTable[hashTableIndex] = newHashEntry;
 	}
 }
+void spSkin_addAttachments (spSkin* self, spSkin* skin) {
+	const _Entry* entry = SUB_CAST(_spSkin, skin)->entries;
+	int i = 0;
+	while (entry) {
+		spSkin_addAttachment(self, entry->slotIndex, entry->name, entry->attachment);
+		entry = entry->next;
+	}
+}
+
 
 spAttachment* spSkin_getAttachment (const spSkin* self, int slotIndex, const char* name) {
 	const _SkinHashTableEntry* hashEntry = SUB_CAST(_spSkin, self)->entriesHashTable[(unsigned int)slotIndex % SKIN_ENTRIES_HASH_TABLE_SIZE];

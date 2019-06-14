@@ -81,6 +81,8 @@ SP_API void spSkin_addAttachment (spSkin* self, int slotIndex, const char* name,
 /* Returns 0 if the attachment was not found. */
 SP_API spAttachment* spSkin_getAttachment (const spSkin* self, int slotIndex, const char* name);
 
+SP_API void spSkin_addAttachments (spSkin* self, spSkin* skin);
+
 /* Returns 0 if the slot or attachment was not found. */
 SP_API const char* spSkin_getAttachmentName (const spSkin* self, int slotIndex, int attachmentIndex);
 

@@ -205,6 +205,7 @@ public:
 	* attachment is attached from the new skin. Returns false if the skin was not found.
 	* @param skin May be 0.*/
 	bool set_skin(const String& p_name);
+	void combine_skins(const String& s_name, const Array &skins);
 
 	// split Spine around a node
 	void set_splitNode(NodePath path);
