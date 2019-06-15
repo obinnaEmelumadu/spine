@@ -863,6 +863,36 @@ Array Spine::get_animation_names() const {
 	return names;
 }
 
+Array Spine::get_skins() const {
+
+	Array skins;
+	if (skeleton != NULL){
+		for (int i = 0; i < skeleton->data->skinsCount; i++){
+			spSkin *skin = skeleton->data->skins[i];
+			skins.push_back(skin->name);
+		}
+	}
+	return skins;
+}
+
+Array Spine::get_skin_slots(const String& name) const {
+	const char *s_name = name.utf8().get_data();
+	Array slots;
+	if (skeleton != NULL){
+		spSkin *skin = spSkeletonData_findSkin(skeleton->data, s_name);
+		if(skin){
+			const _Entry* entry = SUB_CAST(_spSkin, skin)->entries;
+			while (entry) {
+				if (slots.find(skeleton->data->slots[entry->slotIndex]->name) == -1){
+					slots.push_back(skeleton->data->slots[entry->slotIndex]->name);
+				}
+				entry = entry->next;
+			}
+		}
+	}
+	return slots;
+}
+
 bool Spine::has_animation(const String &p_name) {
 
 	if (skeleton == NULL) return false;
@@ -1072,7 +1102,9 @@ void Spine:: combine_skins(const String& s_name, const Array &skins){
 	for (int i = 0; i < skins.size(); i++){
 		const char* name = String(skins[i]).utf8().get_data();
 		spSkin *tempSkin = spSkeletonData_findSkin(skeleton->data, name);
-		spSkin_addAttachments(skin, tempSkin);
+		if (tempSkin){
+			spSkin_addAttachments(skin, tempSkin);
+		}
 	}
 	spSkeleton_setSkin(skeleton, skin);
 	return;
@@ -1419,6 +1451,9 @@ void Spine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_animation_names"), &Spine::get_animation_names);
 	ClassDB::bind_method(D_METHOD("has_animation", "name"), &Spine::has_animation);
+
+	ClassDB::bind_method(D_METHOD("get_skins"), &Spine::get_skins);
+	ClassDB::bind_method(D_METHOD("get_skin_slots", "name"), &Spine::get_skin_slots);		
 
 	ClassDB::bind_method(D_METHOD("set_default_mix", "duration"), &Spine::set_default_mix);
 	ClassDB::bind_method(D_METHOD("mix", "from", "to", "duration"), &Spine::mix, 0);

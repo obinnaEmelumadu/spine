@@ -4,4 +4,4 @@
 *.d
 *.pyc
 *.bc
-.vscode/
+.vscode/*
