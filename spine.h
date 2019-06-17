@@ -157,8 +157,8 @@ public:
 
 	Array get_animation_names() const;
 
-	Array Spine::get_skins() const;
-	Array Spine::get_skin_slots(const String& name) const;	
+	Array get_skins() const;
+	Array get_skin_slots(const String& name) const;	
 
 	bool has_animation(const String& p_name);
 	void set_default_mix(real_t p_duration);

@@ -105,7 +105,6 @@ void spSkin_addAttachment (spSkin* self, int slotIndex, const char* name, spAtta
 }
 void spSkin_addAttachments (spSkin* self, spSkin* skin) {
 	const _Entry* entry = SUB_CAST(_spSkin, skin)->entries;
-	int i = 0;
 	while (entry) {
 		spSkin_addAttachment(self, entry->slotIndex, entry->name, entry->attachment);
 		entry = entry->next;
