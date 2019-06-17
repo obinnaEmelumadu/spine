@@ -192,6 +192,31 @@ public:
 			spSkeletonJson_dispose(json);
 			ERR_EXPLAIN(json->error);
 			ERR_FAIL_COND_V(res->data == NULL, RES());
+
+			String nm_atlas_dir = p_atlas.get_base_dir();
+			String nm_atlas_file = "nm_" + p_atlas.get_file();
+			String nm_atlas = nm_atlas_dir.plus_file(nm_atlas_file);			
+			
+			if (FileAccess::exists(nm_atlas)) {
+				res->nm_atlas = spAtlas_createFromFile(nm_atlas.utf8().get_data(), 0);
+				ERR_FAIL_COND_V(res->nm_atlas == NULL, RES());
+
+				spSkeletonJson *nm_json = spSkeletonJson_create(res->nm_atlas);
+				ERR_FAIL_COND_V(nm_json == NULL, RES());
+
+				nm_json->scale = 1;
+
+				res->nm_data = spSkeletonJson_readSkeletonDataFile(nm_json, p_path.utf8().get_data());
+
+				spSkeletonJson_dispose(nm_json);
+				ERR_EXPLAIN(nm_json->error);
+				ERR_FAIL_COND_V(res->nm_data == NULL, RES());
+			} else {
+				res->nm_atlas = NULL;
+				res->nm_data = NULL;
+			}
+
+
 		} else {
 			spSkeletonBinary* bin  = spSkeletonBinary_create(res->atlas);
 			ERR_FAIL_COND_V(bin == NULL, RES());
