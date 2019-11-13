@@ -798,8 +798,15 @@ void Spine::_notification(int p_what) {
 void Spine::_update_children() {
 	for (int i = 0; i < get_child_count(); i++) {
 		auto child = Object::cast_to<Node2D>(get_child(i));
-		if (child != NULL) {
-			child->update();
+		if (child != NULL){
+			for (int z = 0, n = skeleton->slotsCount; z < n; z++) {
+				spSlot *slot = skeleton->drawOrder[z];
+				if (slot->data->name == child->get_name()){
+						child->set_z_index(z);			
+						child->update();
+						break;
+				}
+			}
 		}
 	}
 }
@@ -1153,7 +1160,7 @@ bool Spine::set_skin(const String &p_name) {
 	return spSkeleton_setSkinByName(skeleton, p_name.utf8().get_data()) ? true : false;
 }
 
-void Spine:: combine_skins(const String& s_name, const Array &skins){
+void Spine::combine_skins(const String& s_name, const Array &skins){
 	spSkin *skin = spSkin_create(s_name.utf8().get_data());
 	for (int i = 0; i < skins.size(); i++){
 		const char* name = String(skins[i]).utf8().get_data();
@@ -1165,8 +1172,6 @@ void Spine:: combine_skins(const String& s_name, const Array &skins){
 	spSkeleton_setSkin(skeleton, skin);
 	return;
 }
-
-
 
 void Spine::set_duration(float p_duration) {
 	// Ignore p_duration, because it can't actually be affected and this should be read-only
