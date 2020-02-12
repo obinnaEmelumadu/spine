@@ -1610,7 +1610,7 @@ void Spine::_bind_methods() {
 Rect2 Spine::_edit_get_rect() const {
 
 	if (skeleton == NULL)
-		return Node2D::_edit_get_rect();
+		return Rect2(0, 0, 0, 0);;
 
 	float minX = 65535, minY = 65535, maxX = -65535, maxY = -65535;
 	bool attached = false;
@@ -1642,7 +1642,7 @@ Rect2 Spine::_edit_get_rect() const {
 	}
 
 	int h = maxY - minY;
-	return attached ? Rect2(minX, -minY - h, maxX - minX, h) : Node2D::_edit_get_rect();
+	return attached ? Rect2(minX, -minY - h, maxX - minX, h) : Rect2(0, 0, 0, 0);
 }
 
 void Spine::_update_verties_count() {
