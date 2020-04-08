@@ -67,6 +67,9 @@ public:
 
 		spAtlas *atlas;
 		spSkeletonData *data;
+
+		spAtlas *nm_atlas;
+		spSkeletonData *nm_data;		
 	};
 
 private:
@@ -76,6 +79,9 @@ private:
 	spBone* root_bone;
 	spAnimationState* state;
 	mutable Vector<float> world_verts;
+
+	spSkeleton* nm_skeleton;
+	spAnimationState* nm_state;	
 
 	float speed_scale;
 	String autoplay;
@@ -98,8 +104,13 @@ private:
 	bool loop;
 	String skin;
 
+	NodePath splitNodePath;
+	String splitSlot;
+	bool split;
+	int splitDistance;
+
 	Color modulate;
-	bool flip_x, flip_y;
+	int scaleX, scaleY;
 	SpineBatcher batcher;
 
 	// fx slots (always show on top)
@@ -121,7 +132,7 @@ private:
 	AttachmentNodes attachment_nodes;
 
 	static void spine_animation_callback(spAnimationState* p_state, spEventType p_type, spTrackEntry* p_track, spEvent* p_event);
-	void _on_animation_state_event(int p_track, spEventType p_type, spEvent *p_event, int p_loop_count);
+	void _on_animation_state_event(spTrackEntry* p_state, spEventType p_type, spEvent *p_event, int p_loop_count);
 
 	void _spine_dispose();
 	void _animation_process(float p_delta);
@@ -151,6 +162,9 @@ public:
 	Ref<SpineResource> get_resource();
 
 	Array get_animation_names() const;
+
+	Array get_skins() const;
+	Array get_skin_slots(const String& name) const;	
 
 	bool has_animation(const String& p_name);
 	void set_default_mix(real_t p_duration);
@@ -184,10 +198,10 @@ public:
 	void set_modulate(const Color& p_color);
 	Color get_modulate() const;
 
-	void set_flip_x(bool p_flip);
-	void set_flip_y(bool p_flip);
-	bool is_flip_x() const;
-	bool is_flip_y() const;
+	void set_scaleX(int p_scale);
+	void set_scaleY(int p_scale);
+	int get_scaleX() const;
+	int get_scaleY() const;
 
 	void set_duration(float p_duration);
 	float get_duration() const;
@@ -200,6 +214,17 @@ public:
 	* attachment is attached from the new skin. Returns false if the skin was not found.
 	* @param skin May be 0.*/
 	bool set_skin(const String& p_name);
+	void combine_skins(const String& s_name, const Array &skins);
+
+	// split Spine around a node
+	void set_splitNode(NodePath path);
+	NodePath get_splitNode() const;
+	void set_splitSlot(String slotName);
+	String get_splitSlot() const;
+	void set_split(bool split);
+	bool get_split() const;	
+	void set_splitDistance(int distance);
+	int get_splitDistance() const;	
 
 	//spAttachment* get_attachment(const char* slotName, const char* attachmentName) const;
 	Dictionary get_skeleton() const;
