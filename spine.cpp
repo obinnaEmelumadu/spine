@@ -1396,7 +1396,7 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("scale_Bone_x", "bone_name", "x"), &Spine::scale_Bone_x);
 	ClassDB::bind_method(D_METHOD("scale_Bone_y", "bone_name", "y"), &Spine::scale_Bone_y);
 	ClassDB::bind_method(D_METHOD("update_Bone_transform", "bone_name"), &Spine::update_Bone_transform);
-	ClassDB::bind_method(D_METHOD("update_Bone_transform_with", "bone_name"), &Spine::update_Bone_transform_with, Dictionary dict);
+	ClassDB::bind_method(D_METHOD("update_Bone_transform_with", "bone_name"), &Spine::update_Bone_transform_with);
 	ClassDB::bind_method(D_METHOD("get_slot", "slot_name"), &Spine::get_slot);
 	ClassDB::bind_method(D_METHOD("set_attachment", "slot_name", "attachment"), &Spine::set_attachment);
 	ClassDB::bind_method(D_METHOD("has_attachment_node", "bone_name", "node"), &Spine::has_attachment_node);
