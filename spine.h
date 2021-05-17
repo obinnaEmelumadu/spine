@@ -238,6 +238,7 @@ public:
 	void scale_Bone_y(const String &p_bone_name, const float y);
 
 	void update_Bone_transform(const String &p_bone_name);
+	void update_Bone_transform_with(const String &p_bone_name, Dictionary dict);
 
 	/* Returns null if the slot was not found. */
 	Dictionary get_slot(const String& p_slot_name) const;

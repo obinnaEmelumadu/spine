@@ -1257,6 +1257,20 @@ void Spine::update_Bone_transform(const String &p_bone_name){
 	spBone_updateWorldTransform(bone);
 }
 
+void Spine::update_Bone_transform_with(const String &p_bone_name, Dictionary dict){
+	spBone *bone = spSkeleton_findBone(skeleton, p_bone_name.utf8().get_data());
+	float x, y, rotation, scaleX, scaleY, shearX, shearY;
+	x = dict["x"];
+	y = dict["y"];
+	rotation = dict["rotation"];
+	scaleX = dict["scaleX"];
+	scaleY = dict["scaleY"];
+	shearX = 1.0; 
+	shearY = 1.0;
+
+	spBone_updateWorldTransformWith(bone, x, y, rotation, scaleX, scaleY, shearX, shearY);
+}
+
 Dictionary Spine::get_slot(const String &p_slot_name) const {
 
 	ERR_FAIL_COND_V(skeleton == NULL, Variant());
@@ -1505,6 +1519,7 @@ void Spine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("scale_Bone_x", "bone_name", "x"), &Spine::scale_Bone_x);
 	ClassDB::bind_method(D_METHOD("scale_Bone_y", "bone_name", "y"), &Spine::scale_Bone_y);
 	ClassDB::bind_method(D_METHOD("update_Bone_transform", "bone_name"), &Spine::update_Bone_transform);
+	ClassDB::bind_method(D_METHOD("update_Bone_transform_with", "bone_name"), &Spine::update_Bone_transform_with);
 	ClassDB::bind_method(D_METHOD("get_slot", "slot_name"), &Spine::get_slot);
 	ClassDB::bind_method(D_METHOD("set_attachment", "slot_name", "attachment"), &Spine::set_attachment);
 	ClassDB::bind_method(D_METHOD("has_attachment_node", "bone_name", "node"), &Spine::has_attachment_node);
