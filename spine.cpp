@@ -552,7 +552,7 @@ bool Spine::_set(const StringName &p_name, const Variant &p_value) {
 				stop();
 			else if (has_animation(which)) {
 				reset();
-				play(which, 1, loop);
+				play(which, loop, 1);
 			}
 		} else
 			current_animation = which;
@@ -567,7 +567,7 @@ bool Spine::_set(const StringName &p_name, const Variant &p_value) {
 
 		loop = p_value;
 		if (skeleton != NULL && has_animation(current_animation))
-			play(current_animation, 1, loop);
+			play(current_animation, loop, 1);
 	} else if (name == "playback/forward") {
 
 		forward = p_value;
@@ -824,7 +824,7 @@ void Spine::set_resource(Ref<Spine::SpineResource> p_data) {
 	if (skin != "")
 		set_skin(skin);
 	if (current_animation != "[stop]")
-		play(current_animation, 1, loop);
+		play(current_animation, loop, 1);
 	else
 		reset();
 
