@@ -99,6 +99,8 @@ SP_API void spSkin_dispose (spSkin* self);
 SP_API void spSkin_setAttachment (spSkin* self, int slotIndex, const char* name, spAttachment* attachment);
 /* Returns 0 if the attachment was not found. */
 SP_API spAttachment* spSkin_getAttachment (const spSkin* self, int slotIndex, const char* name);
+SP_API void spSkin_addAttachment (spSkin* self, int slotIndex, const char* name, spAttachment* attachment);
+SP_API void spSkin_addAttachments (spSkin* self, spSkin* skin);
 
 /* Returns 0 if the slot or attachment was not found. */
 SP_API const char* spSkin_getAttachmentName (const spSkin* self, int slotIndex, int attachmentIndex);
@@ -124,6 +126,7 @@ typedef spSkin Skin;
 #define Skin_dispose(...) spSkin_dispose(__VA_ARGS__)
 #define Skin_setAttachment(...) spSkin_addAttachment(__VA_ARGS__)
 #define Skin_getAttachment(...) spSkin_getAttachment(__VA_ARGS__)
+#define Skin_addAttachment(...) spSkin_addAttachment(__VA_ARGS__)
 #define Skin_getAttachmentName(...) spSkin_getAttachmentName(__VA_ARGS__)
 #define Skin_attachAll(...) spSkin_attachAll(__VA_ARGS__)
 #endif

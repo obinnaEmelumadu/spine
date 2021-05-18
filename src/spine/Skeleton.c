@@ -508,6 +508,10 @@ int spSkeleton_findBoneIndex (const spSkeleton* self, const char* boneName) {
 	return -1;
 }
 
+spBoneData* spSkeleton_getBone (const spSkeleton* self, const int index) {
+	return self->data->bones[index];
+}
+
 spSlot* spSkeleton_findSlot (const spSkeleton* self, const char* slotName) {
 	int i;
 	for (i = 0; i < self->slotsCount; ++i)

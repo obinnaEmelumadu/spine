@@ -112,6 +112,8 @@ SP_API void spSkeleton_setSlotsToSetupPose (const spSkeleton* self);
 SP_API spBone* spSkeleton_findBone (const spSkeleton* self, const char* boneName);
 /* Returns -1 if the bone was not found. */
 SP_API int spSkeleton_findBoneIndex (const spSkeleton* self, const char* boneName);
+/* Returns 0 if the bone was not found. */
+SP_API spBoneData* spSkeleton_getBone (const spSkeleton* self, const int index);
 
 /* Returns 0 if the slot was not found. */
 SP_API spSlot* spSkeleton_findSlot (const spSkeleton* self, const char* slotName);
@@ -156,6 +158,7 @@ typedef spSkeleton Skeleton;
 #define Skeleton_setSlotsToSetupPose(...) spSkeleton_setSlotsToSetupPose(__VA_ARGS__)
 #define Skeleton_findBone(...) spSkeleton_findBone(__VA_ARGS__)
 #define Skeleton_findBoneIndex(...) spSkeleton_findBoneIndex(__VA_ARGS__)
+#define Skeleton_getBone(...) spSkeleton_getBone(__VA_ARGS__)
 #define Skeleton_findSlot(...) spSkeleton_findSlot(__VA_ARGS__)
 #define Skeleton_findSlotIndex(...) spSkeleton_findSlotIndex(__VA_ARGS__)
 #define Skeleton_setSkin(...) spSkeleton_setSkin(__VA_ARGS__)

@@ -104,6 +104,21 @@ void spSkin_dispose (spSkin* self) {
 	FREE(self);
 }
 
+void spSkin_addAttachment (spSkin* self, int slotIndex, const char* name, spAttachment* attachment) {
+	_Entry* newEntry = _Entry_create(slotIndex, name, attachment);
+	newEntry->next = SUB_CAST(_spSkin, self)->entries;
+	SUB_CAST(_spSkin, self)->entries = newEntry;
+}
+
+void spSkin_addAttachments (spSkin* self, spSkin* skin) {
+	const _Entry* entry = SUB_CAST(_spSkin, skin)->entries;
+
+	while (entry) {
+		spSkin_addAttachment(self, entry->slotIndex, entry->name, entry->attachment);
+		entry = entry->next;
+	}
+}
+
 void spSkin_setAttachment (spSkin* self, int slotIndex, const char* name, spAttachment* attachment) {
 	_SkinHashTableEntry* existingEntry = 0;
 	_SkinHashTableEntry* hashEntry = SUB_CAST(_spSkin, self)->entriesHashTable[(unsigned int)slotIndex % SKIN_ENTRIES_HASH_TABLE_SIZE];
